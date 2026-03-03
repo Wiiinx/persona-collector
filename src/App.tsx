@@ -9,6 +9,56 @@ import type { DialogueEntry, Persona, Scenario, SessionPayload } from './types'
 const SCHEMA_VERSION = '1.0'
 const INITIAL_TYPING_DELAY = 900
 const NEXT_CARD_DELAY = 1200
+const EMOJIS = [
+  '😀',
+  '😃',
+  '😄',
+  '😁',
+  '😆',
+  '😅',
+  '😂',
+  '🤣',
+  '😊',
+  '🙂',
+  '🙃',
+  '😉',
+  '😌',
+  '😍',
+  '🥰',
+  '😘',
+  '😗',
+  '😙',
+  '😚',
+  '😋',
+  '😛',
+  '😝',
+  '🫠',
+  '🤗',
+  '🤔',
+  '🤨',
+  '😐',
+  '😑',
+  '😶',
+  '🙄',
+  '😏',
+  '😣',
+  '😥',
+  '😮',
+  '🤐',
+  '😯',
+  '😪',
+  '😭',
+  '😤',
+  '😡',
+  '👍',
+  '👎',
+  '🙏',
+  '🔥',
+  '🌟',
+  '💡',
+  '💪',
+  '🎉'
+]
 
 type AutoSaveState = 'idle' | 'saving' | 'saved' | 'error'
 
@@ -21,7 +71,6 @@ function App() {
   const [assistantInput, setAssistantInput] = useState('')
   const [showPersonaBrief, setShowPersonaBrief] = useState(true)
   const [isTyping, setIsTyping] = useState(false)
-  const [helpOpen, setHelpOpen] = useState(true)
   const [scenarioReveal, setScenarioReveal] = useState(false)
   const [autoSaveStatus, setAutoSaveStatus] = useState<AutoSaveState>('idle')
   const [sessionComplete, setSessionComplete] = useState(false)
@@ -116,7 +165,6 @@ function App() {
     setAssistantInput('')
     setShowPersonaBrief(true)
     setIsTyping(false)
-    setHelpOpen(true)
     setScenarioReveal(false)
     setAutoSaveStatus('idle')
     setSessionComplete(false)
@@ -181,6 +229,10 @@ function App() {
     }
   }
 
+  const appendEmoji = (emoji: string) => {
+    setAssistantInput((prev) => `${prev}${emoji}`)
+  }
+
   const exportJson = () => {
     if (!sessionPayload) return
     const blob = new Blob([JSON.stringify(sessionPayload, null, 2)], {
@@ -195,19 +247,13 @@ function App() {
   }
 
   const inputDisabled = !selectedScenario || showPersonaBrief || lastSpeaker !== 'user' || sessionComplete
+  const personaLabel = selectedPersona ? `你需要扮演的角色是：${selectedPersona.name}` : '等待抽取角色'
 
   return (
     <div className="chat-app">
       <header className="top-bar">
-        <div>
-          <p className="eyebrow">Pixel Chatroom</p>
-          <h1>沉浸式角色扮演</h1>
-          <p className="subtitle">系统会陆续推送对面的话，你仅需以指定人格自然作答。</p>
-        </div>
+        <h1>赛博剧本杀</h1>
         <div className="top-bar-actions">
-          <button type="button" onClick={() => setHelpOpen(true)}>
-            Help / Persona
-          </button>
           <button type="button" onClick={exportJson} disabled={!sessionPayload}>
             下载 JSON
           </button>
@@ -217,28 +263,26 @@ function App() {
         </div>
       </header>
 
-      <main className="chat-container">
+      <main className="chat-layout">
         <section className="chat-panel">
           <div className="chat-panel-header">
             <div>
-              <h2>实时对话</h2>
-              <p>
-                Session: {sessionId || '---'} · Persona: {selectedPersona ? `${selectedPersona.id}` : '--'}
-              </p>
+              <p className="session-id">Session: {sessionId || '---'}</p>
+              <p className="session-sub">Persona: {selectedPersona ? selectedPersona.id : '--'}</p>
             </div>
             <span className={`autosave ${autoSaveStatus}`}>{autoSaveLabel}</span>
           </div>
 
           <div className="chat-window" ref={chatWindowRef}>
             {dialogue.length === 0 && !isTyping && (
-              <p className="placeholder">等待系统推送第一句…</p>
+              <p className="placeholder">等待剧本角色上线…</p>
             )}
 
             {dialogue.map((item) => (
               <div key={item.turn} className={`bubble ${item.speaker}`}>
-                <div className="avatar">{item.speaker === 'user' ? 'U' : 'A'}</div>
+                <div className="avatar">{item.speaker === 'user' ? 'NPC' : 'YOU'}</div>
                 <div className="bubble-content">
-                  <div className="bubble-meta">{item.speaker === 'user' ? '对面' : '你'}</div>
+                  <div className="bubble-meta">{item.speaker === 'user' ? '剧本角色' : '你'}</div>
                   <p>{item.text}</p>
                 </div>
               </div>
@@ -246,15 +290,15 @@ function App() {
 
             {isTyping && (
               <div className="bubble user typing">
-                <div className="avatar">U</div>
+                <div className="avatar">NPC</div>
                 <div className="bubble-content">
-                  <div className="bubble-meta">对面</div>
+                  <div className="bubble-meta">剧本角色</div>
                   <div className="typing-dots">
                     <span />
                     <span />
                     <span />
                   </div>
-                  <small>对方正在输入…</small>
+                  <small>角色正在输入…</small>
                 </div>
               </div>
             )}
@@ -262,11 +306,18 @@ function App() {
 
           <div className="input-bar">
             <textarea
-              placeholder="输入回复，支持 emoji 🙂🎉"
+              placeholder="输入回复（可搭配 emoji）"
               value={assistantInput}
               onChange={(event) => setAssistantInput(event.target.value)}
               disabled={inputDisabled}
             />
+            <div className="emoji-bar">
+              {EMOJIS.map((emoji) => (
+                <button key={emoji} type="button" onClick={() => appendEmoji(emoji)} disabled={inputDisabled}>
+                  {emoji}
+                </button>
+              ))}
+            </div>
             <button type="button" onClick={handleSendMessage} disabled={!canSend || sessionComplete}>
               发送
             </button>
@@ -281,6 +332,38 @@ function App() {
             </div>
           )}
         </section>
+
+        <aside className="persona-panel">
+          <p className="eyebrow">Persona Card</p>
+          <h3>{personaLabel}</h3>
+          {selectedPersona && (
+            <>
+              <p className="tone">氛围：{selectedPersona.tone}</p>
+              <p className="instructions">你需要做的回复：{selectedPersona.instructions}</p>
+            </>
+          )}
+
+          <div className="scenario-hint">
+            <p>场景脚本默认隐藏。如需核对剧情，可展开（仅运营可见）。</p>
+            <button type="button" onClick={() => setScenarioReveal((prev) => !prev)} disabled={!selectedScenario}>
+              {scenarioReveal ? '隐藏脚本' : '展开脚本'}
+            </button>
+            {scenarioReveal && selectedScenario && (
+              <div className="scenario-cards">
+                <p>
+                  {selectedScenario.id} · {selectedScenario.title}
+                </p>
+                <ul>
+                  {selectedScenario.script.map((card) => (
+                    <li key={card.cardId}>
+                      <strong>{card.cardId}</strong> {card.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </aside>
       </main>
 
       {showPersonaBrief && selectedPersona && (
@@ -293,45 +376,6 @@ function App() {
             <button type="button" onClick={handleConfirmPersona}>
               我已了解，开始对话
             </button>
-          </div>
-        </div>
-      )}
-
-      {helpOpen && selectedPersona && (
-        <div className="drawer">
-          <div className="drawer-card">
-            <div className="drawer-header">
-              <div>
-                <p className="eyebrow">Help</p>
-                <h3>角色：{selectedPersona.name}</h3>
-                <p className="tone">氛围：{selectedPersona.tone}</p>
-              </div>
-              <button type="button" onClick={() => setHelpOpen(false)}>
-                关闭
-              </button>
-            </div>
-            <p className="instructions">{selectedPersona.instructions}</p>
-
-            <div className="scenario-hint">
-              <p>场景脚本对志愿者隐藏，如需调试请手动展开：</p>
-              <button type="button" onClick={() => setScenarioReveal((prev) => !prev)}>
-                {scenarioReveal ? '隐藏内部脚本' : '显示内部脚本（运营限定）'}
-              </button>
-              {scenarioReveal && selectedScenario && (
-                <div className="scenario-cards">
-                  <p>
-                    {selectedScenario.id} · {selectedScenario.title}
-                  </p>
-                  <ul>
-                    {selectedScenario.script.map((card) => (
-                      <li key={card.cardId}>
-                        <strong>{card.cardId}</strong> {card.text}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       )}
