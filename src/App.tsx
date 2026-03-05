@@ -340,6 +340,12 @@ function App() {
             <>
               <p className="tone">氛围：{selectedPersona.tone}</p>
               <p className="instructions">你需要做的回复：{selectedPersona.instructions}</p>
+              {selectedPersona.example && (
+                <div className="persona-example">
+                  <hr />
+                  <p>{selectedPersona.example}</p>
+                </div>
+              )}
             </>
           )}
 
@@ -373,6 +379,12 @@ function App() {
             <h3>你需要扮演的角色是：{selectedPersona.name}</h3>
             <p className="tone">氛围：{selectedPersona.tone}</p>
             <p className="instructions">你需要做的回复：{selectedPersona.instructions}</p>
+            {selectedPersona.example && (
+              <div className="persona-example">
+                <hr />
+                <p>{selectedPersona.example}</p>
+              </div>
+            )}
             <button type="button" onClick={handleConfirmPersona}>
               我已了解，开始对话
             </button>

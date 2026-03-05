@@ -20,6 +20,7 @@ export interface Persona {
   name: string
   instructions: string
   tone: string
+  example?: string
 }
 
 export interface DialogueEntry {

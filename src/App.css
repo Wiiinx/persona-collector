@@ -310,6 +310,7 @@ button:disabled {
   flex-direction: column;
   gap: 14px;
   min-height: 50vh;
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 }
 
 .persona-panel h3 {
@@ -373,7 +374,7 @@ button:disabled {
   width: min(420px, 100%);
   box-shadow: 12px 12px 0 #111;
   text-align: left;
-  font-family: 'Press Start 2P', monospace;
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 }
 
 .persona-card .tone {
@@ -390,6 +391,19 @@ button:disabled {
 .persona-card button {
   width: 100%;
   margin-top: 16px;
+}
+
+.persona-example {
+  margin-top: 12px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.persona-example hr {
+  border: none;
+  border-top: 1px dashed rgba(0, 0, 0, 0.3);
+  margin-bottom: 8px;
 }
 
 @media (max-width: 1024px) {
